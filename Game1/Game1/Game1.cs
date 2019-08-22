@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Diagnostics;
+
 
 namespace Game1
 {
@@ -9,10 +11,19 @@ namespace Game1
     /// </summary>
     public class Game1 : Game
     {
+        //just for testing the mechanics here. Will change to player part later
+
         Texture2D ball1Texture;
         Vector2 ball1Position;
+        Circle ball1Collider;
+
         Texture2D ball2Texture;
         Vector2 ball2Position;
+        Circle ball2Collider;
+
+        
+
+        bool collided = false;
 
         float ballSpeed;
 
@@ -34,10 +45,13 @@ namespace Game1
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            ball1Position = new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
             
+            ball1Position = new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
+
             ball2Position = new Vector2(0, 0);
-            ballSpeed = 100f;
+
+
+            ballSpeed = 300f;
             base.Initialize();
         }
 
@@ -52,7 +66,9 @@ namespace Game1
 
             // TODO: use this.Content to load your game content here
             ball1Texture = Content.Load<Texture2D>("ball");
+            ball1Collider = new Circle(new Vector2(ball1Texture.Width / 2, ball1Texture.Height / 2) + ball1Position, ball1Texture.Width / 2);
             ball2Texture = Content.Load<Texture2D>("ball");
+            ball2Collider = new Circle(new Vector2(ball2Texture.Width / 2, ball2Texture.Height / 2) + ball2Position, ball2Texture.Width / 2);
         }
 
         /// <summary>
@@ -75,6 +91,7 @@ namespace Game1
                 Exit();
 
             // TODO: Add your update logic here
+            //Get the user input and apply movement
             var kstate1 = Keyboard.GetState();
             var kstate2 = Keyboard.GetState();
 
@@ -102,6 +119,26 @@ namespace Game1
             if (kstate2.IsKeyDown(Keys.D))
                 ball2Position.X += ballSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
+            //update the collider location and information
+            ball1Collider.UpdateColliderPosition( ball1Position); //new Vector2(ball1Texture.Width / 2, ball1Texture.Height / 2) +
+            ball2Collider.UpdateColliderPosition( ball2Position); //new Vector2(ball2Texture.Width / 2, ball2Texture.Height / 2) +
+
+            Debug.WriteLine(ball1Collider.Center.ToString());
+
+            //Check the location of each collider for collision detection
+            if (ball1Collider.Intersects(ball2Collider))
+            {
+                Debug.WriteLine("Ball 1 position: " + ball1Position.ToString() + " Ball 2 position: " + ball2Position.ToString());
+                Debug.WriteLine("Ball 1 Center: " + ball1Collider.Center.ToString() + " Ball 2 Center: " + ball2Collider.Center.ToString());
+                Debug.WriteLine("Ball 1 Radius: " + ball1Collider.Radius.ToString() + " Ball 2 Radius: " + ball2Collider.Radius.ToString());
+                collided = true;
+            }
+                
+            else
+                collided = false;
+
+            
+
             base.Update(gameTime);
         }
 
@@ -116,8 +153,10 @@ namespace Game1
             // TODO: Add your drawing code here
             spriteBatch.Begin();
             //With this we are setting the origin to the center of the image. Now the image will get drawn to the center of the screen.
-            spriteBatch.Draw(ball1Texture, ball1Position, null, Color.White, 0f, new Vector2(ball1Texture.Width / 2, ball1Texture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
-            spriteBatch.Draw(ball2Texture,ball2Position,Color.Green);
+            if(!collided)
+                spriteBatch.Draw(ball1Texture, ball1Position, null, Color.White, 0f, new Vector2(ball1Texture.Width / 2, ball1Texture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
+
+            spriteBatch.Draw(ball2Texture, ball2Position, null, Color.White, 0f, new Vector2(ball2Texture.Width / 2, ball2Texture.Height / 2), Vector2.One, SpriteEffects.None, 0f);
             spriteBatch.End();
 
 
